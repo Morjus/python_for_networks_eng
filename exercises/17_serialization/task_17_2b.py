@@ -31,3 +31,34 @@
 > pip install graphviz
 
 '''
+import re
+from pprint import pprint
+import yaml
+from draw_network_graph import *
+
+def transform_topology(yaml_name):
+    res = {}
+    result = {}
+    with open(yaml_name) as f:
+        template = yaml.safe_load(f)
+    #pprint(template)
+    for device, connections in template.items():
+        for local_intf, remote_dev in connections.items():
+            for k, v in remote_dev.items():
+                res = {(device,local_intf):(k,v)}
+                if res[(device,local_intf)] not in result:
+                    result.update(res)
+    pprint(result)
+    
+    return result
+
+
+
+
+if __name__ == '__main__':
+    draw_topology(transform_topology('topology.yaml'))
+    
+    
+    
+    
+    

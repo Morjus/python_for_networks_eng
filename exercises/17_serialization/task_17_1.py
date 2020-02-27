@@ -40,8 +40,44 @@
 '''
 
 import glob
+import re
+import csv
+from pprint import pprint
+
 
 sh_version_files = glob.glob('sh_vers*')
-#print(sh_version_files)
-
 headers = ['hostname', 'ios', 'image', 'uptime']
+
+
+def parse_sh_version(command_string):   
+    regex = r'Cisco\sIOS\sSoftware,\s\d{4} Software\s(?:\S+), [Vv]ersion\s(?P<ios>\S+),.+uptime\sis\s(?P<uptime>.+)\sSystem returned.+System image file is "(?P<image>\S+)"'
+    for match in re.finditer(regex, command_string, re.DOTALL):
+        res = tuple([match.group('ios'), match.group('image'), match.group('uptime')])
+    return res
+
+def write_inventory_to_csv(data_filenames,csv_filename):
+    res = []
+    res.append(headers)
+    
+    for filename in data_filenames:
+        reg_for_host = r'\S+_(?P<hostname>\S+)\.txt'
+        hostname = re.match(reg_for_host, filename).group('hostname') 
+        temp = []
+        temp.append(hostname)
+        with open (filename) as f:
+            text = f.read()
+            router = parse_sh_version(text)
+            router = list(router)
+            for i in router:
+                temp.append(i)
+            res.append(temp)
+    with open(csv_filename, 'w') as f:
+        #pprint(res)
+        writer = csv.writer(f, quoting = csv.QUOTE_NONNUMERIC)
+        for row in res:
+            writer.writerow(row)
+
+if __name__ == '__main__':
+    write_inventory_to_csv(sh_version_files, 'routers_inv.csv')
+    with open('routers_inv.csv') as f:
+        pprint(f.read())

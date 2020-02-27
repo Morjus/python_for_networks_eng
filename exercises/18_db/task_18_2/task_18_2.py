@@ -6,10 +6,6 @@
 
 В этом задании необходимо создать скрипт get_data.py.
 
-Код в скрипте должен быть разбит на функции.
-Какие именно функции и как разделить код, надо решить самостоятельно.
-Часть кода может быть глобальной.
-
 Скрипту могут передаваться аргументы и, в зависимости от аргументов, надо выводить разную информацию.
 Если скрипт вызван:
 * без аргументов, вывести всё содержимое таблицы dhcp
@@ -60,3 +56,60 @@ $ python get_data.py ip vlan 10
 Пожалуйста, введите два или ноль аргументов
 
 '''
+
+import sqlite3
+import os
+import sys
+from pprint import pprint
+from tabulate import tabulate
+
+def connect_db(db_name):
+    return sqlite3.connect(db_name)
+
+def key_maker():
+    try:
+        if len(sys.argv)==3:
+            key, value = sys.argv[1:]
+            keys = ['mac', 'ip', 'vlan', 'interface', 'switch']
+            if key in keys:
+                keys.remove(key)
+                return key,value
+            else:
+                print('Данный параметр не поддерживается.\nДопустимые значения параметров: mac, ip, vlan, interface, switch')
+        elif len(sys.argv)==1:
+            print('Без аргументов.')
+            
+            return True
+        else:
+            print('Пожалуйста, введите два или ноль аргументов')
+    except:
+        print('Some error')
+
+def db_grab(connection, query, key, value, keys):
+    if keys == None:
+        result = [row for row in connection.execute(query)]
+        print(tabulate(result))
+    else:
+        connection.row_factory = sqlite3.Row
+        print('\nИнформация для хостов, где', key, '=', value)
+        result = connection.execute(query,(value, ))
+        print(tabulate(result))
+
+if __name__ == '__main__':
+    try:
+        if len(sys.argv)>2:
+            key, value = key_maker()
+            query_for_dhcp = 'select * from dhcp where {} = ?'.format(key)
+            con = connect_db('dhcp_snooping.db')
+            keys = ['mac', 'ip', 'interface', 'switch']
+            db_grab(con, query_for_dhcp, key, value, keys)
+        else:
+
+            query = 'select * from dhcp'
+            con = connect_db('dhcp_snooping.db')
+            db_grab(con, query, key=None, value=None, keys=None)
+    except:
+        print('Final error')
+            
+    
+    

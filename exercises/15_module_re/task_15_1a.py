@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
-'''
-Задание 15.1a
+import re
+from pprint import pprint
 
-Скопировать функцию get_ip_from_cfg из задания 15.1 и переделать ее таким образом, чтобы она возвращала словарь:
-* ключ: имя интерфейса
-* значение: кортеж с двумя строками:
-  * IP-адрес
-  * маска
-
-В словарь добавлять только те интерфейсы, на которых настроены IP-адреса.
-
-Например (взяты произвольные адреса):
-{'FastEthernet0/1':('10.0.1.1', '255.255.255.0'),
- 'FastEthernet0/2':('10.0.2.1', '255.255.255.0')}
-
-Для получения такого результата, используйте регулярные выражения.
-
-Проверить работу функции на примере файла config_r1.txt.
-
-Обратите внимание, что в данном случае, можно не проверять корректность IP-адреса,
-диапазоны адресов и так далее, так как обрабатывается вывод команды, а не ввод пользователя.
-
-'''
+def get_ip_from_cfg(filename):
+    with open(filename) as f:
+        text = f.read()
+    res = {}
+    
+    regex = (r'interface (Ethernet0/\d|Loopback\d)\s*.*\s*.*\s*'
+    r'ip address ((?:\d+\.){3}\d) ((?:\d+\.){3}\d+)')
+    match = re.finditer(regex, text)
+    for m in match:
+        ip = []
+        ip.append(m.group(2))
+        ip.append(m.group(3))
+        res[m.group(1)]= tuple(ip)
+    return res
+    
+fin_tuple = get_ip_from_cfg('config_r2.txt')
+pprint(fin_tuple)

@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
+import re
+from pprint import pprint
 '''
 Задание 15.3
 
-Создать функцию convert_ios_nat_to_asa, которая конвертирует правила NAT из синтаксиса cisco IOS в cisco ASA.
+Создать функцию convert_ios_nat_to_asa, которая конвертирует правила NAT 
+из синтаксиса cisco IOS в cisco ASA.
 
 Функция ожидает такие аргументы:
 - имя файла, в котором находится правила NAT Cisco IOS
@@ -32,3 +34,14 @@ object network LOCAL_10.1.9.5
 Во всех правилах для ASA интерфейсы будут одинаковыми (inside,outside).
 '''
 
+def convert_ios_nat_to_asa(inputname, outputname):
+    with open(inputname) as f:
+        text = f.read()
+    res = [match.groupdict() for match in re.finditer('(?:\w+\s){5}tcp\s(?P<ip>[\d.]+|\S+)\s(?P<tcp>\d+)\sinterface\s(?P<intf>\S+)\s(?P<num>\d+)', text)]
+    with open(outputname, 'w') as f:
+        for line in res:
+            temp = 'object network LOCAL_{}\n host {}\n nat (inside,outside) static interface service tcp {} {}\n'.format(line['ip'],line['ip'],line['tcp'],line['num'])
+            f.write(temp)
+    
+if __name__ == '__main__':
+    convert_ios_nat_to_asa('cisco_nat_config.txt', 'res.txt')

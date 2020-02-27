@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
+import re
+from pprint import pprint 
 '''
-Задание 15.2
-
-Создать функцию parse_sh_ip_int_br, которая ожидает как аргумент
-имя файла, в котором находится вывод команды show ip int br
-
 Функция должна обрабатывать вывод команды show ip int br и возвращать такие поля:
 * Interface
 * IP-Address
@@ -16,8 +12,13 @@
  ('FastEthernet0/1', '10.0.2.1', 'up', 'up'),
  ('FastEthernet0/2', 'unassigned', 'down', 'down')]
 
-Для получения такого результата, используйте регулярные выражения.
-
-Проверить работу функции на примере файла sh_ip_int_br.txt.
 
 '''
+def parse_sh_ip_int_br(filename):
+    with open(filename, 'r') as f:
+        text = f.read()
+    regex = (r'(\S+) +([\d.]+|\S+) +\w+ +\w+ +(up|down|administratively down) +(up|down)')
+    return [match.groups() for match in re.finditer(regex, text)]
+    
+s = parse_sh_ip_int_br('sh_ip_int_br.txt')
+pprint(s)

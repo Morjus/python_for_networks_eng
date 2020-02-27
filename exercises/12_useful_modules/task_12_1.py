@@ -1,17 +1,21 @@
-# -*- coding: utf-8 -*-
-'''
-Задание 12.1
+import subprocess as sub
 
-Создать функцию ping_ip_addresses, которая проверяет доступность IP-адресов.
+def ping_ip_addresses(ip_list):
+    reach = []
+    unreach = []
+    for ip in ip_list:
+        ping = sub.run('ping {} -c 2'.format(ip),
+        shell = True,
+        stdout = sub.PIPE,
+        stderr = sub.PIPE,
+        encoding = 'utf-8')
+        if ping.returncode == 0:
+            reach.append(ip)
+        else:
+            unreach.append(ip)
+    return reach,unreach
 
-Функция ожидает как аргумент список IP-адресов.
-
-Функция должна возвращать кортеж с двумя списками:
-* список доступных IP-адресов
-* список недоступных IP-адресов
-
-Для проверки доступности IP-адреса, используйте ping.
-
-Ограничение: Все задания надо выполнять используя только пройденные темы.
-'''
-
+if __name__ == '__main__':
+    ips = ['192.168.111.1','a','192.168.111.33','192.168.111.34','192.168.111.86']
+    s = ping_ip_addresses(ips)
+    print(s)
